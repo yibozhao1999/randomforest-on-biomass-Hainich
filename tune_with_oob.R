@@ -79,4 +79,26 @@ cat('Root Mean Square Error on testing data: ', round(results['RMSE'], 2), '\n')
 cat('Mean Absolute Error on testing data: ', round(results['MAE'], 2), '\n')
 cat('R-squared on testing data: ', round(results['Rsquared'], 2), '\n')
 
+# Creating the plot
+myplot <-
+  ggplot(data = test_data, aes(x = BA, y = y_hats)) +
+  geom_point(color = "blue") +
+  geom_abline(intercept = 0, slope = 1, linetype = "solid", color = "black") +
+  ggtitle("15*15 m") +
+  xlab("Observed BA m²/ha") +
+  ylab("Predicted BA m²/ha") +
+  annotate("text", x = min(test_data$BA), y = max(y_hats), hjust = 0, vjust = 1,
+           label = paste("R² =", R2, "\nMAE =", MAE, "\nRMSE =", RMSE, "\nRMSE% =", RMSE_percent, "%"),
+           size = 3)
 
+# Adding linear regression line to the plot
+myplot <- myplot + geom_smooth(method = "lm", se = FALSE, 
+                               linetype = "dashed", color = "red", linewidth = 0.6)
+
+# Deleting background and grid lines and displaying the plot
+final_plot <- myplot + theme_bw() + 
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+# Display the final plot
+print(final_plot)
