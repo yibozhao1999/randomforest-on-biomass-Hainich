@@ -79,7 +79,7 @@ library(caret)
 library(ggplot2)
 
 # Set a seed for reproducibility
-set.seed(27)
+set.seed(47)
 
 biomass_model <- read.csv(file.choose())
 # head(biomass_model)
@@ -128,7 +128,7 @@ ggplot(result, aes(x = mtry, y = RMSE, group = factor(ntree), color = factor(ntr
 print(paste("Best mtry:", best_mtry, " Best ntree:", best_ntree))
 
 # Set up repeated cross-validation
-set.seed(27)
+set.seed(47)
 repeat_cv <- trainControl(
   method = "repeatedcv",
   number = 10,
