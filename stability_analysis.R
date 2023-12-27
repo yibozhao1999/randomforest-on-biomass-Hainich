@@ -15,22 +15,22 @@ for (dataset_num in c("15", "25", "50", "75", "100")) {
   biomass_model <- read.csv(file_name)
   
   set.seed(27) # Seed for consistent data partitioning
-  train_indices <- createDataPartition(biomass_model$BA, p = 0.7, list = FALSE)
+  train_indices <- createDataPartition(biomass_model$response, p = 0.7, list = FALSE)
   train_data <- biomass_model[train_indices, ]
   test_data <- biomass_model[-train_indices, ]
   
   # Select best mtry
   set.seed(123) # Seed for consistent mtry selection
-  mtry <- tuneRF(train_data[-1], train_data$BA, ntreeTry=500, stepFactor=1.5, improve=0.01, trace=TRUE, plot=TRUE)
+  mtry <- tuneRF(train_data[-1], train_data$response, ntreeTry=500, stepFactor=1.5, improve=0.01, trace=TRUE, plot=TRUE)
   best_mtry <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
   
   # Select best ntree
   result <- data.frame()
   for (ntree in seq(500, 2500, by = 500)) {
     set.seed(123) # Seed for consistent random forest modeling
-    rf_model <- randomForest(BA ~ ., data = train_data, ntree = ntree, mtry = best_mtry, importance = TRUE)
+    rf_model <- randomForest(response ~ ., data = train_data, ntree = ntree, mtry = best_mtry, importance = TRUE)
     predictions <- predict(rf_model, test_data)
-    RMSE <- sqrt(mean((test_data$BA - predictions)^2))
+    RMSE <- sqrt(mean((test_data$response - predictions)^2))
     result <- rbind(result, data.frame(ntree = ntree, mtry = best_mtry, RMSE = RMSE))
   }
   
@@ -41,9 +41,9 @@ for (dataset_num in c("15", "25", "50", "75", "100")) {
   r_squared_values <- numeric(num_iterations)
   for(i in 1:num_iterations) {
     set.seed(i) # Individual seed for each iteration to evaluate stability
-    model <- randomForest(BA ~ ., data = train_data, ntree = best_ntree, mtry = best_mtry)
+    model <- randomForest(response ~ ., data = train_data, ntree = best_ntree, mtry = best_mtry)
     predictions <- predict(model, newdata = test_data)
-    results <- postResample(predictions, test_data$BA)
+    results <- postResample(predictions, test_data$response)
     r_squared_values[i] <- results['Rsquared']
   }
   
@@ -70,7 +70,7 @@ boxplot_graph <- ggplot(combined_results, aes(x = Dataset, y = R_Squared, fill =
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black")) +
-  labs(title = "Basal Area", x = "Plot Size", y = "R-squared")
+  labs(title = "title", x = "Plot Size", y = "R-squared")
 
 # Display the boxplot
 print(boxplot_graph)
