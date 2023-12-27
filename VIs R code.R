@@ -2,7 +2,7 @@ library(terra)
 library(dplyr)
 library(purrr)
 
-# Define base paths
+# Define  paths
 base_path <- "path"
 output_path <- "path"
 
