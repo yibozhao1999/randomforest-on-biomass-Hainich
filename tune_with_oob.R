@@ -8,13 +8,13 @@ set.seed(47)
 biomass_model <- read.csv(file.choose())
 
 # Split data into training and testing sets
-train_indices <- createDataPartition(biomass_model$BA, p = 0.7, list = FALSE)
+train_indices <- createDataPartition(biomass_model$response, p = 0.7, list = FALSE)
 train_data <- biomass_model[train_indices, ]
 test_data <- biomass_model[-train_indices, ]
 
 #select the best mtry with minimum oob in Randomforest
 set.seed(47)
-mtry <- tuneRF(train_data[-1], train_data$BA, ntreeTry=500,
+mtry <- tuneRF(train_data[-1], train_data$response, ntreeTry=500,
                stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
 best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
 print(mtry)
@@ -26,7 +26,7 @@ result <- data.frame(ntree = integer(), mtry = integer(), RMSE = numeric())
 #gridsearch to select ntree 
 set.seed(47)
 for (ntree in seq(500, 2500, by = 500)) {
-  rf_model <- randomForest(BA ~., data = train_data, ntree = ntree, mtry = best.m, importance = TRUE)
+  rf_model <- randomForest(response ~., data = train_data, ntree = ntree, mtry = best.m, importance = TRUE)
   predictions <- predict(rf_model, train_data) # #### or use test data 
   RMSE <- sqrt(mean((train_data$BA - predictions)^2))
   result <- rbind(result, data.frame(ntree = ntree, mtry = best.m, RMSE = RMSE))
@@ -53,7 +53,7 @@ repeat_cv <- trainControl(
 
 # Train the final model with the best parameters
 biomass <- train(
-  BA ~ ., 
+  response ~ ., 
   data = train_data, 
   method = 'rf',
   ntree = best_ntree,
@@ -74,20 +74,20 @@ print(var_imp)
 y_hats <- predict(biomass, newdata = test_data)
 
 # Model performance on test data
-results <- postResample(pred = y_hats, obs = test_data$BA)
+results <- postResample(pred = y_hats, obs = test_data$response)
 cat('Root Mean Square Error on testing data: ', round(results['RMSE'], 2), '\n')
 cat('Mean Absolute Error on testing data: ', round(results['MAE'], 2), '\n')
 cat('R-squared on testing data: ', round(results['Rsquared'], 2), '\n')
 
 # Creating the plot
 myplot <-
-  ggplot(data = test_data, aes(x = BA, y = y_hats)) +
+  ggplot(data = test_data, aes(x = response, y = y_hats)) +
   geom_point(color = "blue") +
   geom_abline(intercept = 0, slope = 1, linetype = "solid", color = "black") +
   ggtitle("15*15 m") +
   xlab("Observed BA m²/ha") +
   ylab("Predicted BA m²/ha") +
-  annotate("text", x = min(test_data$BA), y = max(y_hats), hjust = 0, vjust = 1,
+  annotate("text", x = min(test_data$response), y = max(y_hats), hjust = 0, vjust = 1,
            label = paste("R² =", R2, "\nMAE =", MAE, "\nRMSE =", RMSE, "\nRMSE% =", RMSE_percent, "%"),
            size = 3)
 
